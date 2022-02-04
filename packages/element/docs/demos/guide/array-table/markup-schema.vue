@@ -107,7 +107,16 @@ const fields = createSchemaField({
 export default {
   components: { FormProvider, Submit, Button, Alert, ...fields },
   data() {
-    const form = createForm()
+    const form = createForm({
+      values: {
+        array: [
+          {
+            a1: '1',
+            a2: '2'
+          }
+        ]
+      }
+    })
     return {
       form,
     }
@@ -117,9 +126,12 @@ export default {
       console.log(...v)
     },
     range(count) {
-      return Array.from(new Array(count)).map((_, key) => ({
+      const value = Array.from(new Array(count)).map((_, key) => ({
         aaa: key,
+        a1: '11'
       }))
+      console.log(value)
+      return value
     },
   },
 }

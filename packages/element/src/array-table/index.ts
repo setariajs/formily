@@ -161,7 +161,7 @@ const getArrayTableColumns = (
               column: ElColumnProps
               $index: number
             }): VNode => {
-              let index = (startIndex.value ?? 0) + props.$index
+              let index = (startIndex?.value ?? 0) + props.$index
               // const index = reactiveDataSource.value.indexOf(props.row)
 
               const children = h(

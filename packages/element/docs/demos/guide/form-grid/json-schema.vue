@@ -22,7 +22,8 @@ const schema = {
       properties: {
         aaa: {
           type: 'string',
-          title: 'AAA',
+          title: 'AAA1',
+          display: 'hidden',
           'x-decorator': 'FormItem',
           'x-component': 'Input',
         },

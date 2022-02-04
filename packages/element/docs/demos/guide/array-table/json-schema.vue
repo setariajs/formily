@@ -1,6 +1,9 @@
 <template>
   <FormProvider :form="form">
     <SchemaField :schema="schema" />
+    <Button
+      @click="onClick"
+    >加载</Button>
     <Submit @submit="log">提交</Submit>
   </FormProvider>
 </template>
@@ -8,7 +11,7 @@
 <script>
 import { createForm } from '@formily/core'
 import { FormProvider, createSchemaField } from '@formily/vue'
-import { Submit, FormItem, ArrayTable, Input, Editable } from '@formily/element'
+import { Button, Submit, FormItem, ArrayTable, Input, Editable } from '@formily/element'
 
 const fields = createSchemaField({
   components: {
@@ -20,7 +23,7 @@ const fields = createSchemaField({
 })
 
 export default {
-  components: { FormProvider, Submit, ...fields },
+  components: { Button, FormProvider, Submit, ...fields },
   data() {
     const form = createForm()
     const schema = {
@@ -132,6 +135,15 @@ export default {
     }
   },
   methods: {
+    onClick() {
+      this.form.setInitialValues({
+        array: [
+          {
+            a1: '1'
+          }
+        ],
+      })
+    },
     log(...v) {
       console.log(...v)
     },

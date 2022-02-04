@@ -1,0 +1,9 @@
+[
+  {
+    "codeId": "EntityCfg.EntityType",
+    "itemList": [
+      { "name": "实体类型一", "value": "1" },
+      { "name": "实体类型二", "value": "2" }
+    ]
+  }
+]
