@@ -10,8 +10,14 @@ import {
 import { AntdIconProps } from '@ant-design/icons/lib/components/AntdIcon'
 import { ButtonProps } from 'antd/lib/button'
 import { ArrayField } from '@formily/core'
-import { useField, useFieldSchema, Schema, JSXComponent } from '@formily/react'
-import { isValid, clone } from '@formily/shared'
+import {
+  useField,
+  useFieldSchema,
+  Schema,
+  JSXComponent,
+  ExpressionScope,
+} from '@formily/react'
+import { isValid, clone, isBool } from '@formily/shared'
 import { SortableHandle } from 'react-sortable-hoc'
 import { usePrefixCls } from '../__builtins__'
 import cls from 'classnames'
@@ -102,7 +108,13 @@ export const ArrayBase: ComposedArrayBase = (props) => {
 }
 
 ArrayBase.Item = ({ children, ...props }) => {
-  return <ItemContext.Provider value={props}>{children}</ItemContext.Provider>
+  return (
+    <ItemContext.Provider value={props}>
+      <ExpressionScope value={{ $record: props.record, $index: props.index }}>
+        {children}
+      </ExpressionScope>
+    </ItemContext.Provider>
+  )
 }
 
 const SortHandle = SortableHandle((props: any) => {
@@ -148,7 +160,7 @@ ArrayBase.Addition = (props) => {
       type="dashed"
       block
       {...props}
-      disabled={array.field?.disabled}
+      disabled={isBool(self?.disabled) ? self?.disabled : array.field?.disabled}
       className={cls(`${prefixCls}-addition`, props.className)}
       onClick={(e) => {
         if (array.props?.disabled) return

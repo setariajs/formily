@@ -94,15 +94,18 @@ function useOverflow<
   const labelCol = JSON.stringify(layout.labelCol)
 
   useEffect(() => {
-    if (containerRef.current && contentRef.current) {
-      const contentWidth = contentRef.current.getBoundingClientRect().width
-      const containerWidth = containerRef.current.getBoundingClientRect().width
-      if (contentWidth && containerWidth && containerWidth < contentWidth) {
-        if (!overflow) setOverflow(true)
-      } else {
-        if (overflow) setOverflow(false)
+    requestAnimationFrame(() => {
+      if (containerRef.current && contentRef.current) {
+        const contentWidth = contentRef.current.getBoundingClientRect().width
+        const containerWidth =
+          containerRef.current.getBoundingClientRect().width
+        if (contentWidth && containerWidth && containerWidth < contentWidth) {
+          if (!overflow) setOverflow(true)
+        } else {
+          if (overflow) setOverflow(false)
+        }
       }
-    }
+    })
   }, [labelCol])
 
   return {
@@ -123,7 +126,7 @@ export const BaseItem: React.FC<IFormItemProps> = ({ children, ...props }) => {
   const formLayout = useFormItemLayout(props)
   const { containerRef, contentRef, overflow } = useOverflow<
     HTMLDivElement,
-    HTMLLabelElement
+    HTMLSpanElement
   >()
   const {
     label,
@@ -171,7 +174,7 @@ export const BaseItem: React.FC<IFormItemProps> = ({ children, ...props }) => {
     // 栅格模式
   }
   if (labelCol || wrapperCol) {
-    if (!labelStyle.width && !wrapperStyle.width) {
+    if (!labelStyle.width && !wrapperStyle.width && layout !== 'vertical') {
       enableCol = true
     }
   }
@@ -218,8 +221,10 @@ export const BaseItem: React.FC<IFormItemProps> = ({ children, ...props }) => {
   const renderLabelText = () => {
     const labelChildren = (
       <div className={`${prefixCls}-label-content`} ref={containerRef}>
-        {asterisk && <span className={`${prefixCls}-asterisk`}>{'*'}</span>}
-        <label ref={contentRef}>{label}</label>
+        <span ref={contentRef}>
+          {asterisk && <span className={`${prefixCls}-asterisk`}>{'*'}</span>}
+          <label>{label}</label>
+        </span>
       </div>
     )
 

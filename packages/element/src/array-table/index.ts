@@ -57,7 +57,7 @@ type ColumnProps = ElColumnProps & {
   key: string | number
   asterisk: boolean
   render?: (
-    startIndex: Ref<number>
+    startIndex?: Ref<number>
   ) => (props: {
     row: Record<string, any>
     column: ElColumnProps

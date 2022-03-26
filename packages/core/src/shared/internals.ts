@@ -5,6 +5,7 @@ import {
   pascalCase,
   isFn,
   isValid,
+  isUndef,
   isEmpty,
   isPlainObj,
   isNumberLike,
@@ -106,9 +107,15 @@ export const getTypedDefaultValue = (field: Field) => {
 }
 
 export const buildFieldPath = (field: GeneralField) => {
+  return buildDataPath(field.form.fields, field.address)
+}
+
+export const buildDataPath = (
+  fields: Record<string, GeneralField>,
+  pattern: FormPath
+) => {
   let prevArray = false
-  const fields = field.form.fields
-  const segments = field.address.segments
+  const segments = pattern.segments
   const path = segments.reduce((path: string[], key: string, index: number) => {
     const currentPath = path.concat(key)
     const currentAddress = segments.slice(0, index + 1)
@@ -120,9 +127,6 @@ export const buildFieldPath = (field: GeneralField) => {
       return path
     }
     if (index >= segments.length - 1) {
-      if (isVoidField(field)) {
-        return currentPath
-      }
       return currentPath
     }
     if (isVoidField(current)) {
@@ -141,10 +145,7 @@ export const buildFieldPath = (field: GeneralField) => {
   return new FormPath(path)
 }
 
-export const buildNodeIndexes = (
-  field: GeneralField,
-  address: FormPathPattern
-) => {
+export const locateNode = (field: GeneralField, address: FormPathPattern) => {
   field.address = FormPath.parse(address)
   field.path = buildFieldPath(field)
   field.form.indexes[field.path.toString()] = field.address.toString()
@@ -161,10 +162,13 @@ export const patchFieldStates = (
     } else if (type === 'update') {
       if (payload) {
         target[address] = payload
-        if (target[oldAddress] === payload) delete target[oldAddress]
+        if (target[oldAddress] === payload) {
+          target[oldAddress]?.dispose()
+          delete target[oldAddress]
+        }
       }
       if (address && payload) {
-        buildNodeIndexes(payload, address)
+        locateNode(payload, address)
       }
     }
   })
@@ -505,9 +509,9 @@ export const cleanupArrayChildren = (field: ArrayField, start: number) => {
 
   const isNeedCleanup = (identifier: string) => {
     const afterStr = identifier.slice(address.length)
-    const number = afterStr.match(NumberIndexReg)?.[1]
-    if (number === undefined) return false
-    const index = Number(number)
+    const numStr = afterStr.match(NumberIndexReg)?.[1]
+    if (numStr === undefined) return false
+    const index = Number(numStr)
     return index >= start
   }
 
@@ -974,10 +978,16 @@ export const resetSelf = batch.bound(
     target.inputValue = typedDefaultValue
     target.inputValues = []
     target.caches = {}
-    if (options?.forceClear) {
-      target.value = typedDefaultValue
-    } else if (isValid(target.value)) {
-      target.value = toJS(target.initialValue ?? typedDefaultValue)
+    if (!isUndef(target.value)) {
+      if (options?.forceClear) {
+        target.value = typedDefaultValue
+      } else {
+        target.value = toJS(
+          !isUndef(target.initialValue)
+            ? target.initialValue
+            : typedDefaultValue
+        )
+      }
     }
     if (!noEmit) {
       target.notify(LifeCycleTypes.ON_FIELD_RESET)
@@ -1014,15 +1024,20 @@ export const getValidFieldDefaultValue = (value: any, initialValue: any) => {
 }
 
 export const allowAssignDefaultValue = (target: any, source: any) => {
-  const isEmptyTarget = isEmpty(target)
-  const isEmptySource = isEmpty(source)
-  const isValidTarget = isValid(target)
-  const isValidSource = isValid(source)
+  const isEmptyTarget = target !== null && isEmpty(target)
+  const isEmptySource = source !== null && isEmpty(source)
+  const isValidTarget = !isUndef(target)
+  const isValidSource = !isUndef(source)
   if (!isValidTarget) {
     if (isValidSource) {
       return true
     }
     return false
+  }
+
+  if (typeof target === typeof source) {
+    if (target === '') return false
+    if (target === 0) return false
   }
 
   if (isEmptyTarget) {
